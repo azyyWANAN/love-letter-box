@@ -35,9 +35,36 @@ except ImportError:
     cnlunar = None
 
 # ==================== 配置区 ====================
-# 优先读同目录 config.py（真实密钥只在自己手机，不进 git）；没有则用环境变量。
-try:
-    import config
+# 配置查找顺序（从最安全到最宽松）：
+#   ① Termux 私有目录 ~/private/情书盒/config.py —— 真实密钥住这里，共享存储里别的 app 摸不到
+#   ② 脚本同目录 config.py —— 其他环境的常规部署
+#   ③ 环境变量 —— 最后兜底
+# config.py 被 .gitignore 挡住，永远不会进 git。
+import importlib.util
+
+def _load_config_from(path):
+    """从指定路径加载 config 模块，任何失败返回 None"""
+    try:
+        spec = importlib.util.spec_from_file_location("love_letter_config", path)
+        cfg = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cfg)
+        return cfg
+    except Exception:
+        return None
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_CFG_CANDIDATES = [
+    os.path.join(os.path.expanduser("~"), "private", "情书盒", "config.py"),
+    os.path.join(_HERE, "config.py"),
+]
+config = None
+for _p in _CFG_CANDIDATES:
+    if os.path.isfile(_p):
+        config = _load_config_from(_p)
+        if config is not None:
+            break
+
+if config is not None:
     DEEPSEEK_KEY = config.DEEPSEEK_KEY
     DEEPSEEK_URL = getattr(config, "DEEPSEEK_URL", "https://api.deepseek.com/chat/completions")
     MODEL = getattr(config, "MODEL", "deepseek-v4-flash")
@@ -48,7 +75,7 @@ try:
     LC_ENDPOINT = getattr(config, "LC_ENDPOINT", "http://127.0.0.1:5000/mcp")
     AI_NAME = getattr(config, "AI_NAME", "夏以昼")
     USER_NAME = getattr(config, "USER_NAME", "棠梦烟")
-except ImportError:
+else:
     DEEPSEEK_KEY = os.environ.get("DEEPSEEK_KEY", "")
     DEEPSEEK_URL = os.environ.get("DEEPSEEK_URL", "https://api.deepseek.com/chat/completions")
     MODEL = os.environ.get("MODEL", "deepseek-v4-flash")
@@ -278,6 +305,7 @@ def mark_done():
 def main():
     if not DEEPSEEK_KEY:
         print("没有 DEEPSEEK_KEY：把 config.example.py 复制成 config.py 并填入你的 key。")
+        print("config.py 可放两个地方：脚本同目录，或 Termux 私有目录 ~/private/情书盒/（更安全）。")
         sys.exit(1)
 
     args = sys.argv[1:]
