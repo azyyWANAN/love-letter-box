@@ -49,6 +49,10 @@ MCP 壳：`nohup python3 mcp_server.py > ~/mcp.log 2>&1 &`，前端挂 `http://1
 - key 只进自己手机的 config，别贴论坛、别发群里；
 - 截图分享时，别把配置区截进去。
 
+## 通用版
+
+想要一份没有我们名字、即开即用的干净版本？→ [love-letter-generator](https://github.com/azyyWANAN/love-letter-generator)
+
 ## 致谢
 
 架构底子来自阿煜的情书生成器（阿澜 & 阿煜），我们照着盖了一间自己的，加了三样新料：农历动态计算、节气四立、MCP 壳。共创开源，两家人的信一起写得久一点。
