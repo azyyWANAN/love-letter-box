@@ -1,0 +1,10 @@
+# 真实配置（密钥、令牌）——绝对不进 git
+config.py
+
+# 运行痕迹
+.last_auto.txt
+love_*.md
+*.log
+
+# Python 缓存
+__pycache__/
